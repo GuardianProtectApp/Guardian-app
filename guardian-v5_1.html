@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Guardian</title>
+<!-- Space Mono via Google Fonts - loads on device, falls back to system mono in sandbox -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" crossorigin>
+<style>
+/* ════════════════════════════════════════════════════════
+   GUARDIAN — 2040 DESIGN SYSTEM
+   
+   Principle: restraint over decoration. Research showed that
+   safety-critical interfaces succeed through clarity, large
+   targets, and zero friction — not animated ornamentation.
+   The "futuristic" feel comes from material quality (true
+   glass optics, instrument-grade typography, one deliberate
+   signature) rather than motion for its own sake.
+   
+   Signature: the SOS disc IS the status indicator — its
+   colour and glow intensity communicate state directly,
+   replacing the need for separate text badges.
+════════════════════════════════════════════════════════ */
+
+:root {
+  /* Surface */
+  --void:     #000000;
+  --surf-1:   #0A0F16;
+  --surf-2:   #0F1620;
+  --surf-3:   #161F2C;
+
+  /* Glass material */
+  --glass:        rgba(255,255,255,0.045);
+  --glass-raised:  rgba(255,255,255,0.075);
+  --glass-edge:    rgba(255,255,255,0.10);
+  --glass-edge-hi: rgba(255,255,255,0.18);
+  --glass-spec:    rgba(255,255,255,0.40);
+  --shadow-1:      rgba(0,0,0,0.5);
+  --shadow-2:      rgba(0,0,0,0.3);
+
+  /* Text */
+  --ink-1: #F4FAFF;
+  --ink-2: rgba(228,242,255,0.78);
+  --ink-3: rgba(200,224,255,0.48);
+  --ink-4: rgba(180,210,255,0.26);
+
+  /* Signal colours — used precisely, each with one job */
+  --cyan:     #00D9FF;
+  --cyan-dim: #0091B3;
+  --cyan-bg:  rgba(0,217,255,0.13);
+  --cyan-edge:rgba(0,217,255,0.34);
+
+  --green:    #00E676;
+  --green-dim:#00A656;
+  --green-bg: rgba(0,230,118,0.13);
+  --green-edge:rgba(0,230,118,0.34);
+
+  --amber:    #FFB300;
+  --amber-bg: rgba(255,179,0,0.13);
+  --amber-edge:rgba(255,179,0,0.34);
+
+  --red:      #FF3B5C;
+  --red-dim:  #D6203E;
+  --red-bg:   rgba(255,59,92,0.15);
+  --red-edge: rgba(255,59,92,0.38);
+
+  --violet:    #B084FF;
+  --violet-bg: rgba(176,132,255,0.13);
+  --violet-edge:rgba(176,132,255,0.34);
+
+  /* Grid + dividers */
+  --grid-line: rgba(255,255,255,0.022);
+  --divider:   rgba(255,255,255,0.07);
+
+  /* Radii */
+  --rad-pill: 999px;
+  --rad-xl:   28px;
+  --rad-l:    20px;
+  --rad-m:    14px;
+  --rad-s:    9px;
+
+  /* Type */
+  --f-display: -apple-system,'SF Pro Display',system-ui,sans-serif;
+  --f-body:    -apple-system,'SF Pro Text',system-ui,sans-serif;
+  --f-data:    'Space Mono','SF Mono',ui-monospace,monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;height:100dvh;overflow:hidden;}
+body{
+  font-family:var(--f-body);
+  background:var(--void);
+  -webkit-font-smoothing:antialiased;
+  color:var(--ink-1);
+}
+
+/* Reduced motion respect */
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;}
+}
+
+/* ── Wallpaper ── */
+#wallpaper{position:fixed;inset:0;z-index:0;background:var(--void);}
+#grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:44px 44px;
+}
+#vignette{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 85% 70% at 50% 38%,transparent 50%,rgba(0,0,0,0.6) 100%);
+}
+
+/* ── Shell ── */
+#shell{display:flex;align-items:center;justify-content:center;height:100%;position:relative;z-index:1;background:var(--void);}
+#app{width:100%;max-width:430px;height:100%;height:100dvh;display:flex;flex-direction:column;overflow:hidden;position:relative;background:var(--void);}
+
+/* ── Screens ── */
+.screens{flex:1;position:relative;overflow:hidden;min-height:0;}
+.scr{
+  position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  opacity:0;pointer-events:none;
+  transition:opacity .28s cubic-bezier(.4,0,.2,1),transform .28s cubic-bezier(.4,0,.2,1);
+  transform:translateY(8px);
+}
+.scr.on{opacity:1;pointer-events:all;transform:translateY(0);}
+.scr::-webkit-scrollbar{display:none;}
+
+/* ── Glass surface tokens ── */
+.gl{background:var(--glass);border:1px solid var(--glass-edge);
+  box-shadow:inset 0 1px 0 var(--glass-spec),inset 0 -1px 0 var(--shadow-2),0 6px 24px var(--shadow-1);
+  backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);}
+.gl-raised{background:var(--glass-raised);border:1px solid var(--glass-edge-hi);
+  box-shadow:inset 0 1px 0 var(--glass-spec),inset 0 -1px 0 var(--shadow-2),0 10px 32px var(--shadow-1);
+  backdrop-filter:blur(26px) saturate(1.8);-webkit-backdrop-filter:blur(26px) saturate(1.8);}
+
+/* ── Status bar (floating, minimal) ── */
+.statusbar{position:absolute;top:0;left:0;right:0;z-index:30;
+  padding:env(safe-area-inset-top,14px) 20px 0;
+  display:flex;justify-content:space-between;align-items:center;pointer-events:none;}
+.sb-time{font-family:var(--f-data);font-size:13px;color:var(--ink-2);letter-spacing:.02em;}
+.sb-icons{display:flex;gap:7px;align-items:center;}
+.sb-ico{width:14px;height:14px;stroke:var(--ink-3);fill:none;stroke-width:1.8;}
+
+/* ── Bottom nav: persistent, calm, always reachable ── */
+#nav{position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:30;
+  padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));display:none;}
+.navbar{display:flex;align-items:center;gap:2px;border-radius:var(--rad-pill);padding:6px;}
+.navbtn{display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:var(--rad-pill);
+  transition:background .2s,box-shadow .2s;}
+.navbtn .nico{width:19px;height:19px;display:flex;align-items:center;justify-content:center;}
+.navbtn .nico svg{width:17px;height:17px;stroke:var(--ink-3);fill:none;stroke-width:1.6;transition:stroke .2s;}
+.navbtn .nlbl{font-family:var(--f-data);font-size:8px;color:var(--ink-4);letter-spacing:.02em;
+  max-height:0;overflow:hidden;transition:max-height .2s,color .2s;white-space:nowrap;}
+.navbtn.on{background:var(--cyan-bg);box-shadow:inset 0 1px 0 var(--glass-spec),0 0 14px var(--cyan-bg);padding:8px 11px;}
+.navbtn.on .nico svg{stroke:var(--cyan);}
+.navbtn.on .nlbl{color:var(--cyan);max-height:14px;margin-top:1px;}
+
+/* ── Page header ── */
+.pagehead{padding:calc(env(safe-area-inset-top,14px) + 50px) 20px 14px;}
+.eyebrow{display:block;font-family:var(--f-data);font-size:9px;font-weight:500;
+  color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;margin-bottom:5px;}
+.pagetitle{font-family:var(--f-display);font-size:27px;font-weight:300;color:var(--ink-1);letter-spacing:-.02em;}
+.pagesub{font-size:12.5px;color:var(--ink-3);margin-top:4px;line-height:1.5;}
+
+/* ── Content layout ── */
+.layer{padding:8px 16px 110px;display:flex;flex-direction:column;gap:10px;}
+.divlabel{font-family:var(--f-data);font-size:9px;font-weight:500;color:var(--ink-4);
+  text-transform:uppercase;letter-spacing:.15em;display:flex;align-items:center;gap:8px;padding:3px 2px;}
+.divlabel::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--divider),transparent);}
+
+/* ── Card ── */
+.card{border-radius:var(--rad-l);overflow:hidden;}
+
+/* ── List row ── */
+.row{display:flex;align-items:center;padding:13px 16px;gap:13px;
+  border-bottom:1px solid var(--divider);cursor:pointer;transition:background .15s;}
+.row:last-child{border-bottom:none;}
+.row:active{background:var(--glass);}
+.rico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rico svg{width:17px;height:17px;fill:none;stroke-width:1.8;}
+.r-cy{background:var(--cyan-bg);border:1px solid var(--cyan-edge);}.r-cy svg{stroke:var(--cyan);}
+.r-gr{background:var(--green-bg);border:1px solid var(--green-edge);}.r-gr svg{stroke:var(--green);}
+.r-am{background:var(--amber-bg);border:1px solid var(--amber-edge);}.r-am svg{stroke:var(--amber);}
+.r-rd{background:var(--red-bg);border:1px solid var(--red-edge);}.r-rd svg{stroke:var(--red);}
+.r-vi{background:var(--violet-bg);border:1px solid var(--violet-edge);}.r-vi svg{stroke:var(--violet);}
+.rinfo{flex:1;min-width:0;}
+.rlabel{font-size:13.5px;font-weight:500;color:var(--ink-1);}
+.rsub{font-size:11px;color:var(--ink-3);margin-top:2px;font-family:var(--f-data);}
+.rchev svg{width:13px;height:13px;stroke:var(--ink-4);fill:none;stroke-width:2;}
+
+/* ── Toggle ── */
+.toggle{width:46px;height:27px;border-radius:var(--rad-pill);background:var(--glass-raised);
+  border:1px solid var(--glass-edge-hi);cursor:pointer;position:relative;transition:all .22s;flex-shrink:0;}
+.toggle.on{background:var(--cyan-dim);border-color:var(--cyan);box-shadow:0 0 12px var(--cyan-bg);}
+.toggle::after{content:'';position:absolute;width:21px;height:21px;border-radius:50%;background:var(--ink-1);
+  top:2px;left:2px;transition:left .22s cubic-bezier(.34,1.56,.64,1);box-shadow:0 2px 6px var(--shadow-1);}
+.toggle.on::after{left:21px;}
+
+/* ── Buttons ── */
+.btn{width:100%;padding:15px;border-radius:var(--rad-m);font-family:var(--f-body);
+  font-size:14.5px;font-weight:600;cursor:pointer;border:none;transition:transform .15s;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--cyan-bg);color:var(--cyan);border:1px solid var(--cyan-edge);
+  box-shadow:inset 0 1px 0 var(--glass-spec);}
+.btn-ghost{background:var(--glass);color:var(--ink-2);border:1px solid var(--glass-edge);
+  box-shadow:inset 0 1px 0 var(--glass-spec);}
+.btn-quiet{background:transparent;color:var(--ink-3);border:1px solid var(--divider);}
+
+/* ── Pills / chips ── */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:var(--rad-pill);
+  font-family:var(--f-data);font-size:10px;font-weight:500;}
+.p-cy{background:var(--cyan-bg);color:var(--cyan);border:1px solid var(--cyan-edge);}
+.p-gr{background:var(--green-bg);color:var(--green);border:1px solid var(--green-edge);}
+.p-rd{background:var(--red-bg);color:var(--red);border:1px solid var(--red-edge);}
+.p-am{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-edge);}
+.p-vi{background:var(--violet-bg);color:var(--violet);border:1px solid var(--violet-edge);}
+
+/* ── Info banner ── */
+.banner{display:flex;align-items:flex-start;gap:11px;padding:13px 15px;border-radius:var(--rad-m);}
+.banner svg{width:15px;height:15px;flex-shrink:0;fill:none;stroke-width:2.3;margin-top:1px;}
+.banner span{font-size:12.5px;line-height:1.55;}
+.b-cy{background:var(--cyan-bg);border:1px solid var(--cyan-edge);}.b-cy svg,.b-cy span{stroke:var(--cyan);color:var(--cyan);}
+.b-gr{background:var(--green-bg);border:1px solid var(--green-edge);}.b-gr svg,.b-gr span{stroke:var(--green);color:var(--green);}
+
+/* ════════════════════════════════════════════════════════
+   LAUNCH
+════════════════════════════════════════════════════════ */
+#scr-launch{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:30px 28px calc(30px + env(safe-area-inset-bottom,0px));}
+.brandmark{position:relative;width:136px;height:136px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:24px;flex-shrink:0;}
+.brand-halo{position:absolute;inset:-18px;border-radius:50%;
+  background:radial-gradient(circle,var(--cyan-bg) 0%,transparent 68%);
+  animation:halo-breathe 4.5s ease-in-out infinite;will-change:opacity;}
+@keyframes halo-breathe{0%,100%{opacity:.45}50%{opacity:.9}}
+.brand-svg{width:120px;height:129px;position:relative;z-index:2;}
+.sh-shield{opacity:0;animation:reveal .75s cubic-bezier(.34,1.15,.64,1) .25s both;}
+@keyframes reveal{from{opacity:0}to{opacity:1}}
+.sh-glow{opacity:0;animation:reveal .75s ease .25s both,glowpulse 4.5s ease-in-out 1.4s infinite;}
+@keyframes glowpulse{0%,100%{opacity:.28}50%{opacity:.55}}
+.sh-wing{opacity:0;animation:reveal .55s ease 1.0s both;}
+.sh-glow2{opacity:0;animation:reveal .55s ease 1.0s both,glowpulse 4.5s ease-in-out 1.6s infinite;}
+
+.brand-word{font-family:var(--f-display);font-size:37px;font-weight:200;color:var(--ink-1);
+  letter-spacing:.3em;text-transform:uppercase;margin-bottom:6px;
+  opacity:0;animation:fadeup .55s ease 1.3s forwards;
+  text-shadow:0 0 36px var(--cyan-bg);}
+.brand-tag{font-family:var(--f-data);font-size:9px;color:var(--cyan);letter-spacing:.22em;
+  text-transform:uppercase;margin-bottom:30px;
+  opacity:0;animation:fadeup .45s ease 1.5s forwards;}
+@keyframes fadeup{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+.permit{width:100%;display:flex;justify-content:center;margin-bottom:26px;height:38px;
+  opacity:0;animation:fadeup .45s ease 1.65s forwards;}
+.permit-pill{display:flex;align-items:center;gap:8px;width:248px;height:38px;
+  border-radius:var(--rad-pill);padding:0 18px;justify-content:center;}
+#permit-txt{font-family:var(--f-data);font-size:11px;color:var(--ink-2);
+  display:inline-block;width:128px;text-align:center;transition:opacity .25s ease;}
+#permit-txt.fade{opacity:0;}
+.permit-dot{width:3px;height:3px;border-radius:50%;background:var(--ink-4);}
+.permit-ok{font-family:var(--f-data);font-size:10px;font-weight:600;color:var(--green);}
+
+.entercta{width:100%;padding:17px;border-radius:var(--rad-l);font-family:var(--f-display);
+  font-size:15.5px;font-weight:400;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-1);margin-bottom:14px;
+  opacity:0;animation:fadeup .45s ease 1.8s forwards;
+  background:var(--cyan-bg);border:1px solid var(--cyan-edge);
+  box-shadow:inset 0 1.5px 0 var(--glass-spec),0 0 30px var(--cyan-bg);
+  backdrop-filter:blur(18px);transition:transform .2s;}
+.entercta:active{transform:scale(.97);}
+.enterfoot{font-family:var(--f-data);font-size:9px;color:var(--ink-4);text-align:center;
+  line-height:1.8;letter-spacing:.04em;
+  opacity:0;animation:fadeup .4s ease 1.95s forwards;}
+
+/* ════════════════════════════════════════════════════════
+   SOS — the signature surface
+════════════════════════════════════════════════════════ */
+#scr-sos{display:flex;flex-direction:column;}
+.sos-zone{padding:calc(env(safe-area-inset-top,14px) + 46px) 20px 18px;
+  display:flex;flex-direction:column;align-items:center;position:relative;}
+.sos-ambient{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 65% 50% at 50% 32%,var(--cyan-bg),transparent 55%);
+  animation:halo-breathe 4s ease-in-out infinite;will-change:opacity;}
+
+.sos-wordmark{font-family:var(--f-display);font-size:17px;font-weight:300;color:var(--ink-1);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px;position:relative;z-index:1;}
+
+/* The disc itself — status IS communicated by colour/glow, no separate badge needed */
+.sos-disc-wrap{position:relative;width:188px;height:188px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:18px;}
+.sos-disc{
+  width:172px;height:172px;border-radius:50%;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  position:relative;z-index:2;transition:transform .15s,box-shadow .3s,border-color .3s,background .3s;
+  background:var(--glass-raised);
+  border:1.5px solid var(--cyan-edge);
+  box-shadow:
+    inset 0 2px 0 var(--glass-spec),
+    inset 0 -2px 0 var(--shadow-2),
+    0 0 0 1px rgba(0,217,255,0.12),
+    0 0 32px var(--cyan-bg),
+    0 0 70px rgba(0,217,255,0.14),
+    0 16px 50px var(--shadow-1);
+  backdrop-filter:blur(22px);
+  animation:disc-breathe 3.5s ease-in-out infinite;
+}
+@keyframes disc-breathe{
+  0%,100%{box-shadow:inset 0 2px 0 var(--glass-spec),inset 0 -2px 0 var(--shadow-2),
+    0 0 0 1px rgba(0,217,255,0.12),0 0 32px var(--cyan-bg),0 0 70px rgba(0,217,255,0.14),0 16px 50px var(--shadow-1);}
+  50%{box-shadow:inset 0 2px 0 var(--glass-spec),inset 0 -2px 0 var(--shadow-2),
+    0 0 0 1px rgba(0,217,255,0.20),0 0 42px rgba(0,217,255,0.5),0 0 90px rgba(0,217,255,0.22),0 16px 50px var(--shadow-1);}
+}
+.sos-disc:active{transform:scale(.95);
+  background:var(--red-bg);border-color:var(--red);
+  box-shadow:inset 0 2px 0 var(--glass-spec),0 0 0 1px rgba(255,59,92,0.3),
+    0 0 50px rgba(255,59,92,0.55),0 0 100px rgba(255,59,92,0.3),0 16px 50px var(--shadow-1);
+  animation:none;}
+.sos-label{font-family:var(--f-display);font-size:30px;font-weight:200;color:var(--ink-1);
+  letter-spacing:.14em;position:relative;z-index:1;}
+.sos-hint{font-family:var(--f-data);font-size:8.5px;color:var(--ink-3);letter-spacing:.28em;
+  text-transform:uppercase;position:relative;z-index:1;}
+
+/* Status ring — single thin ring, not decorative, indicates active monitoring */
+.sos-ring{position:absolute;inset:0;border-radius:50%;border:1px solid var(--cyan-edge);opacity:.5;}
+
+.sos-context{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;}
+.ctxchip{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--rad-pill);
+  border:1px solid var(--glass-edge);font-family:var(--f-data);font-size:10px;color:var(--ink-3);
+  background:var(--glass);}
+.ctxchip svg{width:10px;height:10px;stroke:var(--cyan);fill:none;stroke-width:2.4;}
+
+/* Live readout — single line, always present, shows the system is working */
+.readout{display:flex;align-items:center;gap:9px;padding:10px 16px;border-radius:var(--rad-pill);
+  background:var(--glass);border:1px solid var(--glass-edge);max-width:100%;}
+.readout-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);
+  flex-shrink:0;animation:dot-blink 2.2s ease infinite;}
+@keyframes dot-blink{0%,100%{opacity:1}50%{opacity:.3}}
+.readout-text{font-family:var(--f-data);font-size:10px;font-weight:400;color:var(--ink-3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .25s ease;
+  letter-spacing:.01em;}
+.readout-text.fade{opacity:0;}
+
+/* ── Quick actions: 2x3 grid, no fake hierarchy badges — equal access, all unlocked ── */
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.qcard{border-radius:var(--rad-l);padding:15px;cursor:pointer;transition:transform .15s,background .15s;
+  background:var(--glass);border:1px solid var(--glass-edge);
+  box-shadow:inset 0 1px 0 var(--glass-spec);position:relative;overflow:hidden;}
+.qcard:active{transform:scale(.965);background:var(--glass-raised);}
+.qcard.active{background:var(--cyan-bg);border-color:var(--cyan-edge);}
+.qtop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px;}
+.qico{width:34px;height:34px;border-radius:var(--rad-s);background:var(--cyan-bg);
+  border:1px solid var(--cyan-edge);display:flex;align-items:center;justify-content:center;}
+.qico svg{width:16px;height:16px;stroke:var(--cyan);fill:none;stroke-width:1.8;}
+.qlabel{font-size:13px;font-weight:500;color:var(--ink-1);}
+.qsub{font-size:10.5px;color:var(--ink-3);margin-top:2px;font-family:var(--f-data);}
+
+/* ════════════════════════════════════════════════════════
+   AI SCAN
+════════════════════════════════════════════════════════ */
+.scanhero{height:180px;position:relative;overflow:hidden;
+  background:radial-gradient(ellipse 70% 65% at 50% 50%,var(--violet-bg),transparent 62%);
+  display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--divider);}
+.scanorb{width:76px;height:76px;border-radius:50%;background:var(--violet-bg);
+  border:1px solid var(--violet-edge);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 26px var(--violet-bg),inset 0 1px 0 var(--glass-spec);position:relative;}
+.scanorb svg{width:29px;height:29px;stroke:var(--violet);fill:none;stroke-width:1.4;}
+.scanorb::before{content:'';position:absolute;inset:-13px;border-radius:50%;
+  border:1.5px solid transparent;border-top-color:var(--violet);border-right-color:var(--violet-edge);
+  animation:spin 2.2s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scanorb::after{content:'';position:absolute;inset:-26px;border-radius:50%;
+  border:1px solid transparent;border-bottom-color:var(--violet-edge);
+  animation:spin 4.4s linear infinite reverse;}
+
+.sensorrow{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;padding:13px 16px 0;}
+.sensor{display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--rad-pill);
+  font-family:var(--f-data);font-size:9px;border:1px solid var(--glass-edge);
+  color:var(--ink-3);background:var(--glass);transition:all .3s;}
+.sensor svg{width:10px;height:10px;stroke:var(--ink-3);fill:none;stroke-width:2.4;transition:stroke .3s;}
+.sensor.lit{background:var(--violet-bg);border-color:var(--violet-edge);color:var(--violet);}
+.sensor.lit svg{stroke:var(--violet);}
+
+.scanstat{display:flex;justify-content:space-between;padding:12px 16px 6px;}
+.scanstat span:first-child{font-family:var(--f-data);font-size:10.5px;color:var(--ink-3);}
+.scanstat span:last-child{font-family:var(--f-data);font-size:10.5px;color:var(--violet);}
+.scanbar{height:3px;background:var(--divider);border-radius:2px;overflow:hidden;margin:0 16px;}
+.scanfill{height:100%;border-radius:2px;background:linear-gradient(90deg,#7C3AED,var(--violet));
+  box-shadow:0 0 8px var(--violet-bg);transition:width .07s linear;}
+.scanlog{margin:11px 16px;padding:11px 15px;border-radius:var(--rad-m);
+  background:var(--glass);border:1px solid var(--glass-edge);
+  font-family:var(--f-data);font-size:10px;color:var(--ink-3);min-height:48px;line-height:1.8;}
+.log-ok{color:var(--green);}.log-info{color:var(--cyan);}
+
+.timerhead{padding:15px 16px 0;}
+.timertitle{font-size:14.5px;font-weight:500;color:var(--ink-1);margin-bottom:3px;}
+.timersub{font-size:11.5px;color:var(--ink-3);}
+.timeropts{display:flex;gap:6px;padding:12px 16px 0;}
+.topt{flex:1;padding:10px 4px;border-radius:var(--rad-m);font-family:var(--f-data);font-size:11.5px;
+  color:var(--ink-3);cursor:pointer;text-align:center;transition:all .15s;
+  background:var(--glass);border:1px solid var(--glass-edge);}
+.topt.sel{background:var(--cyan-bg);border-color:var(--cyan-edge);color:var(--cyan);}
+.timerrun{display:none;text-align:center;padding:11px 16px 15px;}
+.timerbig{font-family:var(--f-data);font-size:48px;font-weight:200;color:var(--cyan);line-height:1;}
+.timerlbl{font-family:var(--f-data);font-size:9px;color:var(--ink-3);margin-top:4px;letter-spacing:.12em;}
+.timerbtns{display:flex;gap:8px;margin-top:13px;}
+
+/* ════════════════════════════════════════════════════════
+   CONTACTS
+════════════════════════════════════════════════════════ */
+.contactrow{display:flex;align-items:center;padding:13px 16px;gap:13px;
+  border-bottom:1px solid var(--divider);cursor:pointer;transition:background .15s;}
+.contactrow:last-child{border-bottom:none;}.contactrow:active{background:var(--glass);}
+.avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-display);font-size:15px;font-weight:300;flex-shrink:0;border:1px solid;
+  box-shadow:inset 0 1px 0 var(--glass-spec);}
+.av-cy{background:var(--cyan-bg);border-color:var(--cyan-edge);color:var(--cyan);}
+.av-gr{background:var(--green-bg);border-color:var(--green-edge);color:var(--green);}
+.av-vi{background:var(--violet-bg);border-color:var(--violet-edge);color:var(--violet);}
+.cinfo{flex:1;min-width:0;}
+.cname{font-size:13.5px;font-weight:500;color:var(--ink-1);}
+.csub{font-size:11px;color:var(--ink-3);margin-top:2px;font-family:var(--f-data);}
+.cbtn{width:32px;height:32px;border-radius:50%;background:var(--glass);border:1px solid var(--glass-edge);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:inset 0 1px 0 var(--glass-spec);}
+.cbtn svg{width:14px;height:14px;stroke:var(--ink-3);fill:none;stroke-width:1.8;}
+
+.familymap{border-radius:var(--rad-l);overflow:hidden;position:relative;height:160px;
+  background:var(--surf-1);border:1px solid var(--glass-edge);}
+.fmgrid{position:absolute;inset:0;background-image:
+  linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:26px 26px;}
+.fpin{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.fpdot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink-1);}
+.fplabel{font-family:var(--f-data);font-size:8.5px;color:var(--ink-1);
+  background:rgba(0,0,0,0.85);padding:2px 7px;border-radius:4px;border:1px solid var(--glass-edge);
+  white-space:nowrap;}
+.flegend{display:flex;gap:11px;padding:10px 14px;border-radius:var(--rad-m);flex-wrap:wrap;
+  background:var(--glass);border:1px solid var(--glass-edge);}
+.flegitem{display:flex;align-items:center;gap:5px;font-family:var(--f-data);font-size:9px;color:var(--ink-3);}
+.flegdot{width:7px;height:7px;border-radius:50%;}
+
+.nfccard{border-radius:var(--rad-l);padding:18px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,var(--cyan-bg),rgba(0,217,255,0.04));
+  border:1px solid var(--cyan-edge);box-shadow:inset 0 1.5px 0 var(--glass-spec);backdrop-filter:blur(18px);}
+.nfcname{font-family:var(--f-display);font-size:17px;font-weight:300;color:var(--ink-1);}
+.nfcsub{font-family:var(--f-data);font-size:9px;color:var(--cyan);letter-spacing:.1em;margin-top:3px;}
+.nfcgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:15px;}
+.nfcfield-l{font-family:var(--f-data);font-size:9px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;}
+.nfcfield-v{font-size:12.5px;font-weight:500;color:var(--ink-1);margin-top:2px;}
+
+/* ════════════════════════════════════════════════════════
+   ROUTES / MAP
+════════════════════════════════════════════════════════ */
+.mapstage{height:226px;position:relative;overflow:hidden;border-radius:var(--rad-xl);margin:0 16px;
+  background:var(--surf-1);border:1px solid var(--glass-edge);}
+.mapgrid{position:absolute;inset:0;background-image:
+  linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:28px 28px;}
+.heatblob{position:absolute;border-radius:50%;filter:blur(20px);}
+.youpin{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+.youdot{width:12px;height:12px;border-radius:50%;background:var(--cyan);border:2px solid var(--ink-1);
+  box-shadow:0 0 0 4px var(--cyan-bg),0 0 6px var(--cyan);animation:youpulse 3s ease infinite;}
+@keyframes youpulse{0%,100%{box-shadow:0 0 0 3px var(--cyan-bg),0 0 6px var(--cyan)}
+  50%{box-shadow:0 0 0 9px rgba(0,217,255,0.08),0 0 16px var(--cyan)}}
+.mapbadge{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);border-radius:var(--rad-pill);
+  padding:5px 14px;font-family:var(--f-data);font-size:10px;color:var(--ink-3);white-space:nowrap;
+  background:var(--glass-raised);border:1px solid var(--glass-edge);backdrop-filter:blur(16px);}
+
+.keycard{padding:13px 15px;}
+.keycard h3{font-family:var(--f-data);font-size:9px;color:var(--ink-4);letter-spacing:.14em;
+  text-transform:uppercase;margin-bottom:9px;}
+.keyrow{display:flex;align-items:center;gap:9px;margin-bottom:6px;}.keyrow:last-child{margin-bottom:0;}
+.keydot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.keyrow p{font-size:11.5px;color:var(--ink-2);}
+
+.routerow{display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid var(--divider);
+  cursor:pointer;transition:background .15s;}
+.routerow:last-child{border-bottom:none;}.routerow:active{background:var(--glass);}
+.routeico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.routeico svg{width:16px;height:16px;fill:none;stroke-width:1.8;}
+.rt-safe .routeico{background:var(--green-bg);border:1px solid var(--green-edge);}.rt-safe .routeico svg{stroke:var(--green);}
+.rt-fast .routeico{background:var(--cyan-bg);border:1px solid var(--cyan-edge);}.rt-fast .routeico svg{stroke:var(--cyan);}
+.rt-avoid .routeico{background:var(--red-bg);border:1px solid var(--red-edge);}.rt-avoid .routeico svg{stroke:var(--red);}
+.routeinfo{flex:1;}
+.routename{font-size:13.5px;font-weight:500;color:var(--ink-1);}
+.routedetail{font-family:var(--f-data);font-size:10.5px;color:var(--ink-3);margin-top:2px;}
+
+/* ════════════════════════════════════════════════════════
+   VAULT
+════════════════════════════════════════════════════════ */
+.vaulthero{padding:24px;display:flex;flex-direction:column;align-items:center;border-bottom:1px solid var(--divider);
+  background:radial-gradient(ellipse 65% 55% at 50% 40%,var(--violet-bg),transparent 60%);}
+.vaultorb{width:62px;height:62px;border-radius:50%;background:var(--violet-bg);border:1px solid var(--violet-edge);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 0 26px var(--violet-bg),inset 0 1.5px 0 var(--glass-spec);
+  margin-bottom:11px;backdrop-filter:blur(14px);}
+.vaultorb svg{width:25px;height:25px;stroke:var(--violet);fill:none;stroke-width:1.5;}
+.vaulttitle{font-family:var(--f-display);font-size:16px;font-weight:300;color:var(--ink-1);}
+.vaultsub{font-family:var(--f-data);font-size:9.5px;color:var(--violet);letter-spacing:.09em;margin-top:3px;}
+.encpill{display:flex;align-items:center;gap:6px;margin-top:13px;font-family:var(--f-data);font-size:9.5px;
+  color:var(--green);background:var(--green-bg);border:1px solid var(--green-edge);
+  padding:5px 13px;border-radius:var(--rad-pill);}
+.encpill svg{width:11px;height:11px;stroke:var(--green);fill:none;stroke-width:2;}
+
+.vaultitem{border-radius:var(--rad-m);padding:12px 15px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:background .15s;background:var(--glass);border:1px solid var(--glass-edge);}
+.vaultitem:active{background:var(--glass-raised);}
+.vaulticon{width:34px;height:34px;border-radius:var(--rad-s);background:var(--violet-bg);
+  border:1px solid var(--violet-edge);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.vaulticon svg{width:15px;height:15px;stroke:var(--violet);fill:none;stroke-width:1.8;}
+.vaultinfo{flex:1;min-width:0;}
+.vaultname{font-family:var(--f-data);font-size:10.5px;font-weight:500;color:var(--ink-1);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vaultmeta{font-family:var(--f-data);font-size:9.5px;color:var(--ink-3);margin-top:2px;}
+.vaultlock svg{width:13px;height:13px;stroke:var(--violet);fill:none;stroke-width:2;}
+
+/* ════════════════════════════════════════════════════════
+   PROFILE
+════════════════════════════════════════════════════════ */
+.profile-hero{
+  padding:calc(env(safe-area-inset-top,14px)+48px) 20px 24px;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  background:radial-gradient(ellipse 70% 50% at 50% 30%,var(--cyan-bg),transparent 55%);
+  border-bottom:1px solid var(--divider);
+}
+.profile-avatar{
+  width:90px;height:90px;border-radius:50%;
+  background:linear-gradient(135deg,var(--cyan-dim),#7C3AED);
+  border:2px solid var(--glass-edge-hi);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-display);font-size:32px;font-weight:200;color:#fff;
+  margin-bottom:14px;
+  box-shadow:0 0 32px var(--cyan-bg),inset 0 1.5px 0 var(--glass-spec);
+}
+.profile-name{font-family:var(--f-display);font-size:24px;font-weight:300;color:var(--ink-1);letter-spacing:-.01em;}
+.profile-handle{font-family:var(--f-data);font-size:10px;color:var(--cyan);letter-spacing:.1em;margin-top:4px;}
+.profile-chips{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:12px;}
+
+.medgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.medcell{padding:12px 14px;border-radius:var(--rad-m);background:var(--glass);border:1px solid var(--glass-edge);}
+.medcell-label{font-family:var(--f-data);font-size:9px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px;}
+.medcell-val{font-size:13.5px;font-weight:500;color:var(--ink-1);}
+
+/* ════════════════════════════════════════════════════════
+   SETTINGS / PROFILE
+════════════════════════════════════════════════════════ */
+.profileband{display:flex;align-items:center;gap:17px;padding:22px 20px;border-bottom:1px solid var(--divider);}
+.profileav{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--cyan-dim),#7C3AED);
+  border:1px solid var(--glass-edge-hi);display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-display);font-size:19px;font-weight:300;color:#fff;flex-shrink:0;
+  box-shadow:0 0 22px var(--cyan-bg),inset 0 1px 0 var(--glass-spec);}
+.profilename{font-family:var(--f-display);font-size:19px;font-weight:300;color:var(--ink-1);}
+.profilesub{font-family:var(--f-data);font-size:9.5px;color:var(--cyan);margin-top:3px;letter-spacing:.08em;}
+
+.statuscard{border-radius:var(--rad-l);padding:15px 17px;background:var(--green-bg);
+  border:1px solid var(--green-edge);box-shadow:inset 0 1px 0 var(--glass-spec);
+  display:flex;align-items:center;justify-content:space-between;}
+.statuscard strong{font-size:14.5px;font-weight:500;color:var(--ink-1);display:block;}
+.statuscard span{font-size:11px;color:var(--ink-3);}
+
+/* ── AI model grid ── */
+.modelgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.modelcard{padding:13px 14px;border-radius:var(--rad-m);
+  background:var(--glass);border:1px solid var(--glass-edge);position:relative;overflow:hidden;}
+.mc-name{font-family:var(--f-data);font-size:10px;font-weight:500;color:var(--ink-1);margin-bottom:2px;}
+.mc-arch{font-family:var(--f-data);font-size:9px;color:var(--ink-4);margin-bottom:9px;}
+.mc-acc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.mc-acc{font-family:var(--f-data);font-size:15px;font-weight:300;color:var(--cyan);}
+.mc-bar{height:2px;background:var(--divider);border-radius:1px;overflow:hidden;}
+.mc-fill{height:100%;border-radius:1px;}
+.mc-badge{position:absolute;top:10px;right:10px;font-family:var(--f-data);font-size:7.5px;
+  padding:2px 7px;border-radius:var(--rad-pill);}
+
+/* ── Voice trigger demo ── */
+.vt-demo{padding:16px;}
+.vt-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;}
+.vt-orb{width:52px;height:52px;border-radius:50%;
+  background:var(--violet-bg);border:1px solid var(--violet-edge);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 0 18px var(--violet-bg),inset 0 1px 0 var(--glass-spec);}
+.vt-orb svg{width:22px;height:22px;stroke:var(--violet);fill:none;stroke-width:1.6;}
+.vt-orb.listening{animation:vt-pulse 1.2s ease-in-out infinite;
+  box-shadow:0 0 28px rgba(176,132,255,0.55),inset 0 1px 0 var(--glass-spec);}
+@keyframes vt-pulse{0%,100%{box-shadow:0 0 18px var(--violet-bg),inset 0 1px 0 var(--glass-spec);}
+  50%{box-shadow:0 0 36px rgba(176,132,255,0.6),inset 0 1px 0 var(--glass-spec);}}
+.vt-title{font-size:14px;font-weight:500;color:var(--ink-1);}
+.vt-sub{font-size:11px;color:var(--ink-3);margin-top:2px;font-family:var(--f-data);}
+.vt-waveform{height:32px;display:flex;align-items:center;gap:3px;padding:0 2px;margin-bottom:12px;}
+.vt-bar{width:3px;border-radius:2px;background:var(--violet);opacity:.3;
+  animation:vt-idle 2s ease-in-out infinite;}
+.vt-bar:nth-child(odd){animation-delay:.3s;}
+.vt-bar:nth-child(3n){animation-delay:.7s;}
+@keyframes vt-idle{0%,100%{height:4px}50%{height:8px}}
+.vt-bar.active{opacity:1;animation:vt-active 0.15s ease-in-out infinite alternate;}
+@keyframes vt-active{from{height:4px}to{height:28px}}
+.vt-status{font-family:var(--f-data);font-size:10px;color:var(--ink-3);margin-bottom:12px;
+  min-height:16px;transition:color .25s;}
+.vt-status.on{color:var(--violet);}
+
+/* ── Biometrics card (lives in Settings) ── */
+.biocard{padding:16px;}
+.biotop{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;}
+.biolabel{font-family:var(--f-data);font-size:9px;color:var(--ink-3);letter-spacing:.1em;margin-bottom:5px;}
+.bionum{font-family:var(--f-data);font-size:38px;font-weight:200;color:var(--red);line-height:1;}
+.biounit{font-family:var(--f-data);font-size:11px;color:var(--red);margin-top:5px;}
+.biostatus{font-size:11.5px;color:var(--ink-3);margin-top:4px;}
+.ecgwrap{height:38px;position:relative;overflow:hidden;margin-top:4px;}
+.ecgsvg{width:200%;height:100%;animation:ecgscroll 2.2s linear infinite;}
+@keyframes ecgscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ════════════════════════════════════════════════════════
+   OVERLAYS
+════════════════════════════════════════════════════════ */
+.ov-sos{position:fixed;inset:0;z-index:500;display:none;flex-direction:column;align-items:center;
+  justify-content:center;gap:11px;padding:30px;
+  background:radial-gradient(ellipse 65% 55% at 50% 35%,var(--red-bg),transparent 60%),rgba(8,0,3,0.97);
+  backdrop-filter:blur(30px) saturate(1.4);}
+.ov-sos.on{display:flex;animation:ovin .28s ease;}
+@keyframes ovin{from{opacity:0}to{opacity:1}}
+.ovtitle{font-family:var(--f-display);font-size:25px;font-weight:200;color:var(--ink-1);letter-spacing:.16em;}
+.ovcount{font-family:var(--f-data);font-size:74px;font-weight:100;color:var(--red);line-height:1;
+  text-shadow:0 0 30px var(--red-bg);}
+.ovinfo{font-family:var(--f-data);font-size:10.5px;color:var(--ink-3);text-align:center;line-height:2;letter-spacing:.02em;}
+.ovcancel{margin-top:18px;padding:13px 34px;border-radius:var(--rad-m);cursor:pointer;
+  font-family:var(--f-body);font-size:13.5px;font-weight:600;letter-spacing:.03em;
+  background:var(--red-bg);color:var(--red);border:1px solid var(--red-edge);
+  box-shadow:inset 0 1px 0 var(--glass-spec);}
+
+.ov-stealth{position:fixed;inset:0;z-index:600;background:#000;display:none;
+  flex-direction:column;align-items:center;justify-content:center;}
+.ov-stealth.on{display:flex;}
+.stealthdot{width:5px;height:5px;border-radius:50%;background:#0a0a0a;animation:stealthbreathe 5s ease infinite;}
+@keyframes stealthbreathe{0%,100%{opacity:.06}50%{opacity:.18}}
+.stealthexit{position:fixed;bottom:38px;left:50%;transform:translateX(-50%);
+  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.035);color:rgba(255,255,255,0.1);
+  padding:9px 24px;border-radius:var(--rad-pill);font-family:var(--f-data);font-size:9px;cursor:pointer;letter-spacing:.06em;}
+
+.ov-call{position:fixed;inset:0;z-index:500;display:none;flex-direction:column;align-items:center;
+  padding-top:74px;gap:5px;background:radial-gradient(ellipse at 50% 25%,rgba(0,8,18,0.98),var(--void));
+  backdrop-filter:blur(30px);}
+.ov-call.on{display:flex;animation:ovin .3s ease;}
+.callstatus{font-family:var(--f-data);font-size:9px;color:var(--ink-4);letter-spacing:.24em;margin-bottom:14px;}
+.callavatar{width:82px;height:82px;border-radius:50%;background:linear-gradient(135deg,var(--cyan-dim),#7C3AED);
+  border:1px solid var(--glass-edge-hi);display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-display);font-size:29px;font-weight:300;color:#fff;margin-bottom:11px;
+  box-shadow:0 0 30px var(--cyan-bg),inset 0 1.5px 0 var(--glass-spec);}
+.callname{font-family:var(--f-display);font-size:31px;font-weight:200;color:var(--ink-1);}
+.callsub{font-family:var(--f-data);font-size:10px;color:var(--ink-3);margin-top:5px;}
+.callacts{display:flex;gap:54px;margin-top:50px;}
+.callact{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.callbtn{width:67px;height:67px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:transform .15s;
+  box-shadow:inset 0 1.5px 0 var(--glass-spec);}
+.callbtn:active{transform:scale(.91);}
+.callbtn svg{width:25px;height:25px;stroke:#fff;fill:none;stroke-width:2;}
+.call-end{background:linear-gradient(135deg,#E11D48,#9F1239);}
+.call-accept{background:linear-gradient(135deg,#16A34A,#15803D);}
+.calllbl{font-family:var(--f-data);font-size:9px;color:var(--ink-3);}
+
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);
+  color:var(--ink-1);padding:11px 21px;border-radius:var(--rad-pill);font-family:var(--f-data);font-size:11px;
+  opacity:0;transition:all .25s cubic-bezier(.4,0,.2,1);z-index:700;white-space:nowrap;pointer-events:none;
+  background:var(--glass-raised);border:1px solid var(--glass-edge-hi);
+  box-shadow:inset 0 1.5px 0 var(--glass-spec),0 8px 30px var(--shadow-1);backdrop-filter:blur(28px);}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="wallpaper"><div id="grid"></div><div id="vignette"></div></div>
+<div id="shell"><div id="app">
+
+<div class="statusbar">
+  <span class="sb-time" id="clock">9:41</span>
+  <div class="sb-icons">
+    <svg class="sb-ico" viewBox="0 0 24 24"><path d="M1.4 8.6a13 13 0 0 1 21.2 0M5 12.5a9 9 0 0 1 14 0M8.5 16.4a5 5 0 0 1 7 0M12 20h.01" stroke-linecap="round"/></svg>
+    <svg class="sb-ico" viewBox="0 0 24 24"><rect x="2" y="7" width="16" height="10" rx="2"/><path d="M22 11v3"/><rect x="4" y="9" width="10" height="6" rx="1" fill="currentColor" stroke="none"/></svg>
+  </div>
+</div>
+
+<div class="screens">
+
+<!-- LAUNCH -->
+<div class="scr on" id="scr-launch">
+  <div class="brandmark">
+    <div class="brand-halo"></div>
+    <svg class="brand-svg" viewBox="0 0 337 362" fill="none">
+      <defs>
+        <linearGradient id="sg" x1="14" y1="8" x2="322" y2="350" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#7FF1FF"/><stop offset="0.55" stop-color="#22D3EE"/><stop offset="1" stop-color="#0091B3"/>
+        </linearGradient>
+        <filter id="gf" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <path class="sh-glow" d="M167.0 8.0 C153.7 8.0 97.9 40.2 88.0 44.0 C78.1 47.8 54.2 52.1 48.0 53.0 C41.8 53.9 16.9 49.3 14.0 55.0 C11.1 60.7 12.0 109.2 13.0 121.0 C14.0 132.8 22.4 185.4 26.0 197.0 C29.6 208.6 49.2 250.2 56.0 260.0 C62.8 269.8 100.0 307.6 107.0 314.0 C114.0 320.4 134.8 334.0 140.0 337.0 C145.2 340.0 163.0 350.9 169.0 350.0 C175.0 349.1 206.4 329.6 212.0 326.0 C217.6 322.4 231.3 311.3 236.0 307.0 C240.7 302.7 263.6 279.3 268.0 274.0 C272.4 268.7 285.9 248.4 289.0 243.0 C292.1 237.6 302.7 215.4 305.0 209.0 C307.3 202.6 315.6 178.8 317.0 166.0 C318.4 153.2 327.8 66.2 322.0 56.0 C316.2 45.8 260.9 48.0 248.0 44.0 C235.1 40.0 180.3 8.0 167.0 8.0 Z M167.0 28.0 C178.6 27.8 222.4 52.5 234.0 56.0 C245.6 59.5 300.0 64.4 306.0 70.0 C312.0 75.6 306.5 114.8 306.0 123.0 C305.5 131.2 302.5 158.8 300.0 168.0 C297.5 177.2 281.7 222.9 276.0 233.0 C270.3 243.1 241.0 280.8 232.0 289.0 C223.0 297.2 177.8 331.2 168.0 332.0 C158.2 332.8 122.2 305.8 114.0 299.0 C105.8 292.2 75.1 259.1 69.0 250.0 C62.9 240.9 44.3 201.3 41.0 190.0 C37.7 178.7 29.8 124.1 29.0 114.0 C28.2 103.9 25.5 73.7 31.0 69.0 C36.5 64.3 83.7 61.4 95.0 58.0 C106.3 54.6 155.4 28.2 167.0 28.0 Z" fill="url(#sg)" fill-rule="evenodd" filter="url(#gf)"/>
+      <path class="sh-shield" d="M167.0 8.0 C153.7 8.0 97.9 40.2 88.0 44.0 C78.1 47.8 54.2 52.1 48.0 53.0 C41.8 53.9 16.9 49.3 14.0 55.0 C11.1 60.7 12.0 109.2 13.0 121.0 C14.0 132.8 22.4 185.4 26.0 197.0 C29.6 208.6 49.2 250.2 56.0 260.0 C62.8 269.8 100.0 307.6 107.0 314.0 C114.0 320.4 134.8 334.0 140.0 337.0 C145.2 340.0 163.0 350.9 169.0 350.0 C175.0 349.1 206.4 329.6 212.0 326.0 C217.6 322.4 231.3 311.3 236.0 307.0 C240.7 302.7 263.6 279.3 268.0 274.0 C272.4 268.7 285.9 248.4 289.0 243.0 C292.1 237.6 302.7 215.4 305.0 209.0 C307.3 202.6 315.6 178.8 317.0 166.0 C318.4 153.2 327.8 66.2 322.0 56.0 C316.2 45.8 260.9 48.0 248.0 44.0 C235.1 40.0 180.3 8.0 167.0 8.0 Z M167.0 28.0 C178.6 27.8 222.4 52.5 234.0 56.0 C245.6 59.5 300.0 64.4 306.0 70.0 C312.0 75.6 306.5 114.8 306.0 123.0 C305.5 131.2 302.5 158.8 300.0 168.0 C297.5 177.2 281.7 222.9 276.0 233.0 C270.3 243.1 241.0 280.8 232.0 289.0 C223.0 297.2 177.8 331.2 168.0 332.0 C158.2 332.8 122.2 305.8 114.0 299.0 C105.8 292.2 75.1 259.1 69.0 250.0 C62.9 240.9 44.3 201.3 41.0 190.0 C37.7 178.7 29.8 124.1 29.0 114.0 C28.2 103.9 25.5 73.7 31.0 69.0 C36.5 64.3 83.7 61.4 95.0 58.0 C106.3 54.6 155.4 28.2 167.0 28.0 Z" fill="url(#sg)" fill-rule="evenodd"/>
+      <path class="sh-glow2" d="M54.0 87.0 C53.4 89.0 51.5 106.8 52.0 110.0 C52.5 113.2 54.5 120.9 60.0 125.0 C65.5 129.1 111.8 154.4 118.0 159.0 C124.2 163.6 138.6 180.9 135.0 180.0 C131.4 179.1 81.8 152.2 75.0 148.0 C68.2 143.8 54.7 128.8 53.0 129.0 C51.3 129.2 53.6 146.8 55.0 150.0 C56.4 153.2 64.9 164.6 70.0 168.0 C75.1 171.4 111.1 188.0 116.0 191.0 C120.9 194.0 133.1 205.2 129.0 204.0 C124.9 202.8 71.8 176.9 67.0 176.0 C62.2 175.1 70.3 190.3 72.0 193.0 C73.7 195.7 82.3 205.2 87.0 208.0 C91.7 210.8 127.3 225.0 128.0 226.0 C128.7 227.0 97.2 219.3 95.0 220.0 C92.8 220.7 98.1 231.3 102.0 234.0 C105.9 236.7 136.8 249.0 142.0 252.0 C147.2 255.0 156.2 271.7 164.0 270.0 C171.8 268.3 228.7 236.2 235.0 232.0 C241.3 227.8 242.4 219.5 240.0 219.0 C237.6 218.5 204.9 227.2 206.0 226.0 C207.1 224.8 247.9 208.0 253.0 204.0 C258.1 200.0 271.0 178.1 267.0 178.0 C263.0 177.9 205.5 203.5 205.0 203.0 C204.5 202.5 254.7 176.6 261.0 172.0 C267.3 167.4 279.3 151.6 281.0 148.0 C282.7 144.4 282.8 129.0 281.0 129.0 C279.2 129.0 266.9 143.7 260.0 148.0 C253.1 152.3 201.8 180.0 198.0 181.0 C194.2 182.0 210.2 163.3 215.0 160.0 C219.8 156.7 249.8 144.1 255.0 141.0 C260.2 137.9 274.6 126.2 277.0 123.0 C279.4 119.8 284.0 106.2 284.0 103.0 C284.0 99.8 279.1 84.4 277.0 85.0 C274.9 85.6 264.7 105.8 259.0 110.0 C253.3 114.2 215.2 130.9 209.0 135.0 C202.8 139.1 186.3 150.2 184.0 159.0 C181.7 167.8 182.4 232.7 181.0 241.0 C179.6 249.3 169.3 259.2 167.0 259.0 C164.7 258.8 154.3 246.3 153.0 238.0 C151.7 229.7 153.2 167.6 151.0 159.0 C148.8 150.4 132.0 138.9 126.0 135.0 C120.0 131.1 84.6 116.1 79.0 112.0 C73.4 107.9 61.1 88.1 59.0 86.0 C56.9 83.9 54.6 85.0 54.0 87.0 Z" fill="url(#sg)" filter="url(#gf)"/>
+      <path class="sh-wing" d="M54.0 87.0 C53.4 89.0 51.5 106.8 52.0 110.0 C52.5 113.2 54.5 120.9 60.0 125.0 C65.5 129.1 111.8 154.4 118.0 159.0 C124.2 163.6 138.6 180.9 135.0 180.0 C131.4 179.1 81.8 152.2 75.0 148.0 C68.2 143.8 54.7 128.8 53.0 129.0 C51.3 129.2 53.6 146.8 55.0 150.0 C56.4 153.2 64.9 164.6 70.0 168.0 C75.1 171.4 111.1 188.0 116.0 191.0 C120.9 194.0 133.1 205.2 129.0 204.0 C124.9 202.8 71.8 176.9 67.0 176.0 C62.2 175.1 70.3 190.3 72.0 193.0 C73.7 195.7 82.3 205.2 87.0 208.0 C91.7 210.8 127.3 225.0 128.0 226.0 C128.7 227.0 97.2 219.3 95.0 220.0 C92.8 220.7 98.1 231.3 102.0 234.0 C105.9 236.7 136.8 249.0 142.0 252.0 C147.2 255.0 156.2 271.7 164.0 270.0 C171.8 268.3 228.7 236.2 235.0 232.0 C241.3 227.8 242.4 219.5 240.0 219.0 C237.6 218.5 204.9 227.2 206.0 226.0 C207.1 224.8 247.9 208.0 253.0 204.0 C258.1 200.0 271.0 178.1 267.0 178.0 C263.0 177.9 205.5 203.5 205.0 203.0 C204.5 202.5 254.7 176.6 261.0 172.0 C267.3 167.4 279.3 151.6 281.0 148.0 C282.7 144.4 282.8 129.0 281.0 129.0 C279.2 129.0 266.9 143.7 260.0 148.0 C253.1 152.3 201.8 180.0 198.0 181.0 C194.2 182.0 210.2 163.3 215.0 160.0 C219.8 156.7 249.8 144.1 255.0 141.0 C260.2 137.9 274.6 126.2 277.0 123.0 C279.4 119.8 284.0 106.2 284.0 103.0 C284.0 99.8 279.1 84.4 277.0 85.0 C274.9 85.6 264.7 105.8 259.0 110.0 C253.3 114.2 215.2 130.9 209.0 135.0 C202.8 139.1 186.3 150.2 184.0 159.0 C181.7 167.8 182.4 232.7 181.0 241.0 C179.6 249.3 169.3 259.2 167.0 259.0 C164.7 258.8 154.3 246.3 153.0 238.0 C151.7 229.7 153.2 167.6 151.0 159.0 C148.8 150.4 132.0 138.9 126.0 135.0 C120.0 131.1 84.6 116.1 79.0 112.0 C73.4 107.9 61.1 88.1 59.0 86.0 C56.9 83.9 54.6 85.0 54.0 87.0 Z" fill="url(#sg)"/>
+    </svg>
+  </div>
+  <div class="brand-word">Guardian</div>
+  <div class="brand-tag">Personal safety · always within reach</div>
+  <div class="permit">
+    <div class="permit-pill gl">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <span id="permit-txt">Location &amp; GPS</span>
+      <div class="permit-dot"></div>
+      <span class="permit-ok">Granted</span>
+    </div>
+  </div>
+  <button class="entercta" onclick="enterApp()">Get protected →</button>
+  <div class="enterfoot">UK GDPR · Zero-knowledge vault · All AI on-device</div>
+</div>
+
+<!-- SOS -->
+<div class="scr" id="scr-sos">
+  <div class="sos-zone">
+    <div class="sos-ambient"></div>
+    <div class="sos-wordmark" style="position:relative;z-index:1;">Guardian</div>
+    <div class="sos-disc-wrap">
+      <div class="sos-ring"></div>
+      <button class="sos-disc" onclick="triggerSOS()">
+        <div class="sos-label">SOS</div>
+        <div class="sos-hint">Hold 3s</div>
+      </button>
+    </div>
+    <div class="sos-context">
+      <div class="ctxchip"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke-linecap="round"/><circle cx="12" cy="10" r="3"/></svg>Enfield Town</div>
+      <div class="ctxchip"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>3 watching</div>
+      <div class="ctxchip"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Satellite ready</div>
+    </div>
+    <div class="readout gl">
+      <div class="readout-dot"></div>
+      <span class="readout-text" id="readout">Monitoring ambient audio · all clear</span>
+    </div>
+  </div>
+
+  <div class="layer" style="padding-top:18px;">
+    <div class="divlabel">Active protection</div>
+    <div class="qgrid">
+      <div class="qcard active" onclick="qToggle(this)">
+        <div class="qtop"><div class="qico"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke-linecap="round"/><circle cx="12" cy="10" r="3"/></svg></div><button class="toggle on" onclick="event.stopPropagation();this.classList.toggle('on');this.closest('.qcard').classList.toggle('active')"></button></div>
+        <div class="qlabel">Live location</div><div class="qsub">3 contacts watching</div>
+      </div>
+      <div class="qcard active" onclick="qToggle(this)">
+        <div class="qtop"><div class="qico"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><button class="toggle on" onclick="event.stopPropagation();this.classList.toggle('on');this.closest('.qcard').classList.toggle('active')"></button></div>
+        <div class="qlabel">Shock detect</div><div class="qsub">Fall &amp; impact</div>
+      </div>
+      <div class="qcard" onclick="goScr('ai')">
+        <div class="qico" style="background:var(--violet-bg);border-color:var(--violet-edge);"><svg viewBox="0 0 24 24" style="stroke:var(--violet)"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M6 8l3 3 2-2 3 3 3-4" stroke-linecap="round"/></svg></div>
+        <div class="qlabel">AI scan</div><div class="qsub">Environment analysis</div>
+      </div>
+      <div class="qcard" onclick="showFakeCall()">
+        <div class="qico"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.09 19.79 19.79 0 0 1 1 .4 2 2 0 0 1 2.97 2h3a2 2 0 0 1 2 1.72A12 12 0 0 0 9 6.5a2 2 0 0 1-.45 2.11L7.09 10.1a16 16 0 0 0 6.82 6.82l1.39-1.39a2 2 0 0 1 2.11-.45 12 12 0 0 0 2.78.65A2 2 0 0 1 22 17.92z"/></svg></div>
+        <div class="qlabel">Decoy call</div><div class="qsub">Exit a situation</div>
+      </div>
+      <div class="qcard" onclick="activateStealth()">
+        <div class="qico" style="background:var(--violet-bg);border-color:var(--violet-edge);"><svg viewBox="0 0 24 24" style="stroke:var(--violet)"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></div>
+        <div class="qlabel">Stealth mode</div><div class="qsub">Screen goes dark</div>
+      </div>
+      <div class="qcard" onclick="goScr('vault')">
+        <div class="qico" style="background:var(--violet-bg);border-color:var(--violet-edge);"><svg viewBox="0 0 24 24" style="stroke:var(--violet)"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="qlabel">Evidence vault</div><div class="qsub">3 recordings · locked</div>
+      </div>
+    </div>
+    <div class="banner b-cy">
+      <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>Guardian drone network active here · nearest dock 0.8 km · avg response 3 min 42s</span>
+    </div>
+  </div>
+</div>
+
+<!-- AI SCAN -->
+<div class="scr" id="scr-ai">
+  <div class="pagehead">
+    <span class="eyebrow">Neural analysis</span>
+    <div class="pagetitle">AI environment scan</div>
+    <div class="pagesub">On-device · nothing ever leaves your phone</div>
+  </div>
+  <div class="layer" style="padding-top:0;">
+    <div class="card gl">
+      <div class="scanhero"><div class="scanorb"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M6 8l3 3 2-2 3 3 3-4" stroke-linecap="round"/><path d="M8 21h8M12 17v4"/></svg></div></div>
+      <div class="sensorrow">
+        <div class="sensor" id="s-mic"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>Mic</div>
+        <div class="sensor" id="s-cam"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="2"/><circle cx="12" cy="13" r="3"/></svg>Camera</div>
+        <div class="sensor" id="s-mot"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Motion</div>
+        <div class="sensor" id="s-bt"><svg viewBox="0 0 24 24"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>BT</div>
+        <div class="sensor" id="s-hr"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Heart</div>
+      </div>
+      <div class="scanstat"><span id="scanlbl">Ready to scan</span><span id="scanpct">—</span></div>
+      <div class="scanbar"><div class="scanfill" id="scanfill" style="width:0%;"></div></div>
+      <div class="scanlog" id="scanlog">Tap below to analyse your surroundings</div>
+      <div style="padding:0 16px 16px;"><button class="btn btn-primary" id="scanbtn" onclick="runScan()">Run AI scan</button></div>
+    </div>
+    <div class="divlabel">On-device AI models</div>
+    <div class="modelgrid">
+      <div class="modelcard">
+        <span class="mc-badge p-cy">Live</span>
+        <div class="mc-name">Threat Classifier</div>
+        <div class="mc-arch">MobileNetV4 · 4.2MB</div>
+        <div class="mc-acc-row"><span class="mc-acc">97.2%</span><span style="font-family:var(--f-data);font-size:9px;color:var(--ink-4);">accuracy</span></div>
+        <div class="mc-bar"><div class="mc-fill" style="width:97.2%;"></div></div>
+      </div>
+      <div class="modelcard">
+        <span class="mc-badge p-gr">Live</span>
+        <div class="mc-name">Fall Detector</div>
+        <div class="mc-arch">TinyML · 1.1MB</div>
+        <div class="mc-acc-row"><span class="mc-acc">98.6%</span><span style="font-family:var(--f-data);font-size:9px;color:var(--ink-4);">accuracy</span></div>
+        <div class="mc-bar"><div class="mc-fill" style="width:98.6%;background:linear-gradient(90deg,var(--green-dim),var(--green));"></div></div>
+      </div>
+      <div class="modelcard">
+        <span class="mc-badge p-vi">Live</span>
+        <div class="mc-name">Distress Voice</div>
+        <div class="mc-arch">Whisper Tiny · 39MB</div>
+        <div class="mc-acc-row"><span class="mc-acc">94.8%</span><span style="font-family:var(--f-data);font-size:9px;color:var(--ink-4);">accuracy</span></div>
+        <div class="mc-bar"><div class="mc-fill" style="width:94.8%;background:linear-gradient(90deg,#5B1DB8,var(--violet));"></div></div>
+      </div>
+      <div class="modelcard">
+        <span class="mc-badge p-am">Live</span>
+        <div class="mc-name">Scene Analyser</div>
+        <div class="mc-arch">EfficientDet · 6.8MB</div>
+        <div class="mc-acc-row"><span class="mc-acc">96.1%</span><span style="font-family:var(--f-data);font-size:9px;color:var(--ink-4);">accuracy</span></div>
+        <div class="mc-bar"><div class="mc-fill" style="width:96.1%;background:linear-gradient(90deg,#A05C00,var(--amber));"></div></div>
+      </div>
+    </div>
+
+    <div class="card gl">
+      <div class="timerhead"><div class="timertitle">Journey timer</div><div class="timersub">Alerts your contacts if you don't check in</div></div>
+      <div class="timeropts">
+        <button class="topt" onclick="setTimer(this,15)">15m</button>
+        <button class="topt sel" onclick="setTimer(this,30)">30m</button>
+        <button class="topt" onclick="setTimer(this,60)">1h</button>
+        <button class="topt" onclick="setTimer(this,120)">2h</button>
+      </div>
+      <div style="padding:11px 16px 15px;">
+        <button class="btn btn-primary" id="timerstart" onclick="startTimer()">Start journey timer</button>
+        <div class="timerrun" id="timerrun">
+          <div class="timerbig" id="timerdisp">29:59</div>
+          <div class="timerlbl">UNTIL CONTACTS ALERTED</div>
+          <div class="timerbtns">
+            <button class="btn" style="background:var(--green-bg);color:var(--green);border:1px solid var(--green-edge);" onclick="markSafe()">I'm safe ✓</button>
+            <button class="btn btn-ghost" onclick="stopTimer()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card gl">
+      <div class="vt-demo">
+        <div class="vt-top">
+          <div>
+            <div class="vt-title">Voice trigger</div>
+            <div class="vt-sub" id="vt-sub">"Hey Guardian" · always listening on-device</div>
+          </div>
+          <div class="vt-orb" id="vt-orb"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></div>
+        </div>
+        <div class="vt-waveform" id="vt-wave">
+          <div class="vt-bar"></div><div class="vt-bar"></div><div class="vt-bar"></div>
+          <div class="vt-bar"></div><div class="vt-bar"></div><div class="vt-bar"></div>
+          <div class="vt-bar"></div><div class="vt-bar"></div><div class="vt-bar"></div>
+          <div class="vt-bar"></div><div class="vt-bar"></div><div class="vt-bar"></div>
+          <div class="vt-bar"></div><div class="vt-bar"></div><div class="vt-bar"></div>
+          <div class="vt-bar"></div><div class="vt-bar"></div><div class="vt-bar"></div>
+          <div class="vt-bar"></div><div class="vt-bar"></div>
+        </div>
+        <div class="vt-status" id="vt-status">Passive monitoring · waiting for wake word</div>
+        <button class="btn btn-primary" id="vt-btn" onclick="demoVoice()">Simulate "Hey Guardian"</button>
+      </div>
+    </div>
+    <div class="banner b-cy"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>All AI runs on-device. No audio, video, or biometric data ever leaves your phone.</span></div>
+  </div>
+</div>
+
+<!-- CONTACTS -->
+<div class="scr" id="scr-contacts">
+  <div class="pagehead">
+    <span class="eyebrow">Safety network</span>
+    <div class="pagetitle">Contacts</div>
+    <div class="pagesub">Emergency contacts · buddy system · family dashboard</div>
+  </div>
+  <div class="layer" style="padding-top:0;">
+    <div class="divlabel">Emergency contacts</div>
+    <div class="card gl" style="padding:0;">
+      <div class="contactrow"><div class="avatar av-cy">MJ</div><div class="cinfo"><div class="cname">Mum</div><div class="csub">+44 7700 900 001 · Primary</div></div><div class="cbtn"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.09 19.79 19.79 0 0 1 1 .4 2 2 0 0 1 2.97 2h3a2 2 0 0 1 2 1.72A12 12 0 0 0 9 6.5a2 2 0 0 1-.45 2.11L7.09 10.1a16 16 0 0 0 6.82 6.82l1.39-1.39a2 2 0 0 1 2.11-.45 12 12 0 0 0 2.78.65A2 2 0 0 1 22 17.92z"/></svg></div></div>
+      <div class="contactrow"><div class="avatar av-gr">SR</div><div class="cinfo"><div class="cname">Sophie R.</div><div class="csub">+44 7700 900 042 · Active now</div></div><div class="cbtn"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.09 19.79 19.79 0 0 1 1 .4 2 2 0 0 1 2.97 2h3a2 2 0 0 1 2 1.72A12 12 0 0 0 9 6.5a2 2 0 0 1-.45 2.11L7.09 10.1a16 16 0 0 0 6.82 6.82l1.39-1.39a2 2 0 0 1 2.11-.45 12 12 0 0 0 2.78.65A2 2 0 0 1 22 17.92z"/></svg></div></div>
+      <div class="contactrow"><div class="avatar av-vi">DK</div><div class="cinfo"><div class="cname">Dad</div><div class="csub">+44 7700 900 088</div></div><div class="cbtn"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.09 19.79 19.79 0 0 1 1 .4 2 2 0 0 1 2.97 2h3a2 2 0 0 1 2 1.72A12 12 0 0 0 9 6.5a2 2 0 0 1-.45 2.11L7.09 10.1a16 16 0 0 0 6.82 6.82l1.39-1.39a2 2 0 0 1 2.11-.45 12 12 0 0 0 2.78.65A2 2 0 0 1 22 17.92z"/></svg></div></div>
+    </div>
+    <button class="btn btn-ghost" style="border-radius:var(--rad-xl);" onclick="toast('Contact added')">+ Add contact</button>
+
+    <div class="divlabel">Family dashboard</div>
+    <div class="familymap" style="border-radius:var(--rad-l);overflow:hidden;height:200px;position:relative;border:1px solid var(--glass-edge);">
+<svg viewBox="0 0 430 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:absolute;inset:0;">
+  <rect width="430" height="200" fill="#0A0F16"/>
+  <!-- Grid background -->
+  <defs>
+    <pattern id="mg" width="22" height="22" patternUnits="userSpaceOnUse">
+      <path d="M 22 0 L 0 0 0 22" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="430" height="200" fill="url(#mg)"/>
+  <!-- Park/green area -->
+  <rect x="20" y="20" width="80" height="60" rx="4" fill="rgba(0,230,118,0.06)" stroke="rgba(0,230,118,0.12)" stroke-width="0.5"/>
+  <text x="60" y="55" text-anchor="middle" fill="rgba(0,230,118,0.35)" font-size="7" font-family="monospace">ENFIELD</text>
+  <text x="60" y="64" text-anchor="middle" fill="rgba(0,230,118,0.35)" font-size="7" font-family="monospace">PLAYING FIELDS</text>
+  <!-- Main roads -->
+  <!-- Church Street / A110 (horizontal main) -->
+  <line x1="0" y1="110" x2="430" y2="110" stroke="rgba(255,255,255,0.18)" stroke-width="3"/>
+  <text x="60" y="107" fill="rgba(255,255,255,0.22)" font-size="7" font-family="monospace">CHURCH STREET</text>
+  <!-- Southbury Road (horizontal secondary) -->
+  <line x1="0" y1="148" x2="430" y2="148" stroke="rgba(255,255,255,0.10)" stroke-width="2"/>
+  <text x="80" y="145" fill="rgba(255,255,255,0.16)" font-size="6" font-family="monospace">SOUTHBURY ROAD</text>
+  <!-- Cecil Road vertical -->
+  <line x1="115" y1="0" x2="115" y2="200" stroke="rgba(255,255,255,0.10)" stroke-width="2"/>
+  <text x="118" y="70" fill="rgba(255,255,255,0.16)" font-size="6" font-family="monospace" transform="rotate(90,118,70)">CECIL RD</text>
+  <!-- Palace Gardens Terrace -->
+  <line x1="215" y1="0" x2="215" y2="200" stroke="rgba(255,255,255,0.13)" stroke-width="2.5"/>
+  <text x="218" y="60" fill="rgba(255,255,255,0.18)" font-size="6" font-family="monospace" transform="rotate(90,218,60)">PALACE GDNS</text>
+  <!-- London Road / A10 (vertical main) -->
+  <line x1="310" y1="0" x2="310" y2="200" stroke="rgba(255,255,255,0.18)" stroke-width="3"/>
+  <text x="313" y="40" fill="rgba(255,255,255,0.22)" font-size="7" font-family="monospace" transform="rotate(90,313,40)">LONDON ROAD A10</text>
+  <!-- Enfield Town station -->
+  <rect x="196" y="98" width="36" height="24" rx="3" fill="rgba(0,217,255,0.08)" stroke="rgba(0,217,255,0.25)" stroke-width="0.8"/>
+  <text x="214" y="113" text-anchor="middle" fill="rgba(0,217,255,0.55)" font-size="6" font-family="monospace">STATION</text>
+  <!-- Town centre marker -->
+  <circle cx="214" cy="110" r="24" fill="none" stroke="rgba(0,217,255,0.08)" stroke-width="0.8"/>
+  <!-- Minor roads -->
+  <line x1="0" y1="78" x2="210" y2="78" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <line x1="0" y1="165" x2="430" y2="165" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <line x1="165" y1="0" x2="165" y2="200" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <line x1="265" y1="0" x2="265" y2="200" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <line x1="360" y1="0" x2="360" y2="200" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <line x1="70" y1="0" x2="70" y2="200" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+</svg>
+      <!-- Pin overlays on top of the iframe -->
+      <div style="position:absolute;inset:0;pointer-events:none;">
+        <div class="fpin" style="top:50%;left:50%;transform:translate(-50%,-50%)"><div class="fpdot" style="background:var(--cyan);box-shadow:0 0 8px var(--cyan);"></div><div class="fplabel">You</div></div>
+        <div class="fpin" style="top:22%;left:18%"><div class="fpdot" style="background:var(--green);box-shadow:0 0 6px var(--green);"></div><div class="fplabel">Mum</div></div>
+        <div class="fpin" style="top:64%;left:68%"><div class="fpdot" style="background:var(--amber);box-shadow:0 0 6px var(--amber);"></div><div class="fplabel">Jake</div></div>
+        <div class="fpin" style="top:20%;right:12%"><div class="fpdot" style="background:var(--violet);box-shadow:0 0 6px var(--violet);"></div><div class="fplabel">Dad</div></div>
+      </div>
+    </div>
+    <div class="flegend">
+      <div class="flegitem"><div class="flegdot" style="background:var(--cyan);"></div>You</div>
+      <div class="flegitem"><div class="flegdot" style="background:var(--green);"></div>Mum ✓</div>
+      <div class="flegitem"><div class="flegdot" style="background:var(--amber);"></div>Jake ✓</div>
+      <div class="flegitem"><div class="flegdot" style="background:var(--violet);"></div>Dad — 2h ago</div>
+    </div>
+
+    <div class="divlabel">Student safety card</div>
+    <div class="nfccard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+        <div><div class="nfcname">Aisha S.</div><div class="nfcsub">GUARDIAN STUDENT SAFETY CARD</div></div>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-edge)" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="nfcgrid">
+        <div><div class="nfcfield-l">Emergency contact</div><div class="nfcfield-v">Mum · 07700 900 001</div></div>
+        <div><div class="nfcfield-l">Blood type</div><div class="nfcfield-v">O+</div></div>
+        <div><div class="nfcfield-l">Allergy</div><div class="nfcfield-v">Penicillin</div></div>
+        <div><div class="nfcfield-l">University</div><div class="nfcfield-v">Middlesex</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROUTES -->
+<div class="scr" id="scr-map">
+  <div class="pagehead">
+    <span class="eyebrow">Community safety</span>
+    <div class="pagetitle">Safe routes</div>
+    <div class="pagesub">Real-time heatmap · community incident reports</div>
+  </div>
+  <div class="layer" style="padding-top:0;">
+    <div class="mapstage" style="height:240px;margin:0 16px;border-radius:var(--rad-xl);overflow:hidden;position:relative;border:1px solid var(--glass-edge);">
+<svg viewBox="0 0 430 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:absolute;inset:0;">
+  <rect width="430" height="240" fill="#0A0F16"/>
+  <defs>
+    <pattern id="rg" width="22" height="22" patternUnits="userSpaceOnUse">
+      <path d="M 22 0 L 0 0 0 22" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="430" height="240" fill="url(#rg)"/>
+  <!-- Parks -->
+  <rect x="16" y="20" width="72" height="52" rx="4" fill="rgba(0,230,118,0.06)" stroke="rgba(0,230,118,0.10)" stroke-width="0.5"/>
+  <rect x="340" y="140" width="80" height="80" rx="4" fill="rgba(0,230,118,0.05)" stroke="rgba(0,230,118,0.08)" stroke-width="0.5"/>
+  <!-- Main roads -->
+  <line x1="0" y1="130" x2="430" y2="130" stroke="rgba(255,255,255,0.18)" stroke-width="3"/>
+  <text x="40" y="127" fill="rgba(255,255,255,0.22)" font-size="7" font-family="monospace">CHURCH STREET</text>
+  <line x1="0" y1="172" x2="430" y2="172" stroke="rgba(255,255,255,0.10)" stroke-width="2"/>
+  <line x1="310" y1="0" x2="310" y2="240" stroke="rgba(255,255,255,0.18)" stroke-width="3"/>
+  <line x1="215" y1="0" x2="215" y2="240" stroke="rgba(255,255,255,0.13)" stroke-width="2.5"/>
+  <line x1="115" y1="0" x2="115" y2="240" stroke="rgba(255,255,255,0.10)" stroke-width="2"/>
+  <!-- Heat zones -->
+  <radialGradient id="h1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(255,59,92,0.35)"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+  <radialGradient id="h2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(255,179,0,0.28)"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+  <radialGradient id="h3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(0,230,118,0.28)"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+  <ellipse cx="80" cy="62" rx="55" ry="42" fill="url(#h1)"/>
+  <ellipse cx="155" cy="175" rx="44" ry="35" fill="url(#h2)"/>
+  <ellipse cx="370" cy="80" rx="52" ry="42" fill="url(#h3)"/>
+  <ellipse cx="360" cy="195" rx="42" ry="38" fill="url(#h3)"/>
+  <!-- Minor roads -->
+  <line x1="0" y1="95" x2="210" y2="95" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <line x1="0" y1="198" x2="430" y2="198" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <line x1="70" y1="0" x2="70" y2="240" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <line x1="165" y1="0" x2="165" y2="240" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <line x1="265" y1="0" x2="265" y2="240" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <line x1="360" y1="0" x2="360" y2="240" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <!-- Station -->
+  <rect x="196" y="118" width="36" height="24" rx="3" fill="rgba(0,217,255,0.08)" stroke="rgba(0,217,255,0.25)" stroke-width="0.8"/>
+  <text x="214" y="133" text-anchor="middle" fill="rgba(0,217,255,0.55)" font-size="6" font-family="monospace">STATION</text>
+</svg>
+      <!-- Heat blobs + you-pin overlaid on the real map -->
+      <div style="position:absolute;inset:0;pointer-events:none;">
+        <div class="heatblob" style="width:100px;height:100px;top:4%;left:6%;background:radial-gradient(circle,var(--red-bg) 0%,transparent 70%);"></div>
+        <div class="heatblob" style="width:80px;height:80px;top:52%;left:10%;background:radial-gradient(circle,var(--amber-bg) 0%,transparent 70%);"></div>
+        <div class="heatblob" style="width:90px;height:90px;top:8%;right:8%;background:radial-gradient(circle,var(--green-bg) 0%,transparent 70%);"></div>
+        <div class="heatblob" style="width:68px;height:68px;bottom:12%;right:18%;background:radial-gradient(circle,var(--green-bg) 0%,transparent 70%);"></div>
+        <div class="youpin"><div class="youdot"></div></div>
+        <div class="mapbadge">Guardian network active · drones cover this area</div>
+      </div>
+    </div>
+    <div class="card gl"><div class="keycard">
+      <h3>Heatmap key</h3>
+      <div class="keyrow"><div class="keydot" style="background:var(--red);box-shadow:0 0 5px var(--red);"></div><p>High risk — avoid if possible</p></div>
+      <div class="keyrow"><div class="keydot" style="background:var(--amber);box-shadow:0 0 5px var(--amber);"></div><p>Moderate — stay alert</p></div>
+      <div class="keyrow"><div class="keydot" style="background:var(--green);box-shadow:0 0 5px var(--green);"></div><p>Low risk — generally safe</p></div>
+    </div></div>
+    <div class="banner b-cy"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>If you press SOS here, drones are dispatched within 90 seconds. Average on-scene time: 3 min 42s.</span></div>
+    <div class="card gl" style="padding:0;">
+      <div class="routerow rt-safe"><div class="routeico"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round"/></svg></div><div class="routeinfo"><div class="routename">Safest route <span class="pill p-gr" style="font-size:9px;margin-left:4px;">Recommended</span></div><div class="routedetail">24 min · well-lit · high foot traffic</div></div></div>
+      <div class="routerow rt-fast"><div class="routeico"><svg viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div class="routeinfo"><div class="routename">Fastest route</div><div class="routedetail">16 min · passes 1 amber zone</div></div></div>
+      <div class="routerow rt-avoid"><div class="routeico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div><div class="routeinfo"><div class="routename">Avoid — high risk</div><div class="routedetail">12 min · red zone · poor lighting</div></div></div>
+    </div>
+    <button class="btn btn-primary" style="border-radius:var(--rad-xl);" onclick="toast('Navigating safest route')">Navigate — safest route</button>
+    <button class="btn btn-ghost" style="border-radius:var(--rad-xl);" onclick="toast('Report submitted — thank you')">Flag this location</button>
+  </div>
+</div>
+
+<!-- VAULT -->
+<div class="scr" id="scr-vault">
+  <div class="pagehead">
+    <span class="eyebrow">Zero-knowledge</span>
+    <div class="pagetitle">Evidence vault</div>
+    <div class="pagesub">AES-256 encrypted · only you hold the key</div>
+  </div>
+  <div class="layer" style="padding-top:0;">
+    <div class="card gl"><div class="vaulthero">
+      <div class="vaultorb"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div class="vaulttitle">Vault secured</div>
+      <div class="vaultsub">GUARDIAN CANNOT DECRYPT YOUR RECORDINGS</div>
+      <div class="encpill"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>AES-256 · zero-knowledge · 3 recordings</div>
+    </div></div>
+    <div class="divlabel">Recordings</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="vaultitem"><div class="vaulticon"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div><div class="vaultinfo"><div class="vaultname">Evidence_2026-01-15_22:34.mp4</div><div class="vaultmeta">Video · 2m 14s · SOS event</div></div><div class="vaultlock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
+      <div class="vaultitem"><div class="vaulticon"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></div><div class="vaultinfo"><div class="vaultname">Audio_2026-01-08_23:11.m4a</div><div class="vaultmeta">Audio · 4m 38s · check-in alert</div></div><div class="vaultlock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
+      <div class="vaultitem"><div class="vaulticon"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div><div class="vaultinfo"><div class="vaultname">Evidence_2025-12-29_01:02.mp4</div><div class="vaultmeta">Video · 1m 52s · SOS event</div></div><div class="vaultlock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
+    </div>
+    <button class="btn btn-primary" style="border-radius:var(--rad-xl);" onclick="toast('Export via secure police portal')">Export to police portal</button>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="scr" id="scr-profile">
+  <div class="profile-hero">
+    <div class="profile-avatar">AS</div>
+    <div class="profile-name">Aisha Sharif</div>
+    <div class="profile-handle">ENFIELD TOWN · GUARDIAN COMPLETE</div>
+    <div class="profile-chips">
+      <span class="pill p-gr">All features unlocked</span>
+      <span class="pill p-cy">Verified student</span>
+    </div>
+  </div>
+  <div class="layer">
+    <div class="divlabel">Personal details</div>
+    <div class="card gl" style="padding:0;">
+      <div class="row"><div class="rico r-cy"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="rinfo"><div class="rlabel">Full name</div><div class="rsub">Aisha Sharif</div></div></div>
+      <div class="row"><div class="rico r-cy"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><div class="rinfo"><div class="rlabel">Phone</div><div class="rsub">+44 7700 900 212</div></div></div>
+      <div class="row"><div class="rico r-cy"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><div class="rinfo"><div class="rlabel">Email</div><div class="rsub">aisha.sharif@mdx.ac.uk</div></div></div>
+      <div class="row" style="border-bottom:none;"><div class="rico r-cy"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke-linecap="round"/><circle cx="12" cy="10" r="3"/></svg></div><div class="rinfo"><div class="rlabel">Home address</div><div class="rsub">Enfield Town, London EN1</div></div></div>
+    </div>
+
+    <div class="divlabel">Medical information</div>
+    <div class="medgrid">
+      <div class="medcell"><div class="medcell-label">Blood type</div><div class="medcell-val">O+</div></div>
+      <div class="medcell"><div class="medcell-label">Date of birth</div><div class="medcell-val">14 Mar 2003</div></div>
+      <div class="medcell"><div class="medcell-label">Allergies</div><div class="medcell-val">Penicillin</div></div>
+      <div class="medcell"><div class="medcell-label">NHS number</div><div class="medcell-val">485 777 3456</div></div>
+      <div class="medcell" style="grid-column:1/-1;"><div class="medcell-label">Medical notes</div><div class="medcell-val" style="font-size:12px;">No known conditions · carries EpiPen · contact GP: Dr. A. Patel, Royal Chase</div></div>
+    </div>
+
+    <div class="divlabel">Emergency card (NFC)</div>
+    <div class="nfccard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+        <div><div class="nfcname">Aisha S.</div><div class="nfcsub">GUARDIAN STUDENT SAFETY CARD</div></div>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-edge)" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="nfcgrid">
+        <div><div class="nfcfield-l">Emergency contact</div><div class="nfcfield-v">Mum · 07700 900 001</div></div>
+        <div><div class="nfcfield-l">Blood type</div><div class="nfcfield-v">O+</div></div>
+        <div><div class="nfcfield-l">Allergy</div><div class="nfcfield-v">Penicillin</div></div>
+        <div><div class="nfcfield-l">University</div><div class="nfcfield-v">Middlesex</div></div>
+      </div>
+    </div>
+
+    <div class="divlabel">Account</div>
+    <div class="card gl" style="padding:0;">
+      <div class="row"><div class="rico r-cy"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="rinfo"><div class="rlabel">Change password</div><div class="rsub">Last changed 3 months ago</div></div><div class="rchev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+      <div class="row" style="border-bottom:none;"><div class="rico r-rd"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div><div class="rinfo"><div class="rlabel">Delete account</div><div class="rsub">Permanent and irreversible</div></div><div class="rchev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="scr" id="scr-settings">
+  <div style="padding-top:calc(env(safe-area-inset-top,14px) + 50px);">
+    <div class="profileband"><div class="profileav">AS</div><div><div class="profilename">Aisha S.</div><div class="profilesub">ENFIELD TOWN · ALL FEATURES UNLOCKED</div></div></div>
+  </div>
+  <div class="layer">
+    <div class="statuscard">
+      <div><strong>Guardian Complete</strong><span>Every feature active · no subscription needed</span></div>
+      <span class="pill p-gr">Active</span>
+    </div>
+
+    <div class="divlabel">Protection</div>
+    <div class="card gl" style="padding:0;">
+      <div class="row"><div class="rico r-cy"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="rinfo"><div class="rlabel">Live location</div><div class="rsub">3 contacts can see you</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+      <div class="row"><div class="rico r-gr"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="rinfo"><div class="rlabel">Shock &amp; fall detection</div><div class="rsub">Auto-SOS on impact</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+      <div class="row"><div class="rico r-cy"><svg viewBox="0 0 24 24"><path d="M1.4 8.6a13 13 0 0 1 21.2 0M5 12.5a9 9 0 0 1 14 0M8.5 16.4a5 5 0 0 1 7 0M12 20h.01"/></svg></div><div class="rinfo"><div class="rlabel">SMS &amp; satellite fallback</div><div class="rsub">Works with zero signal</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+      <div class="row"><div class="rico r-rd"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="rinfo"><div class="rlabel">Heart rate monitoring</div><div class="rsub">Alert above 130 bpm</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+      <div class="row" style="border-bottom:none;"><div class="rico r-vi"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></div><div class="rinfo"><div class="rlabel">Voice trigger</div><div class="rsub">"Hey Guardian" · on-device</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+    </div>
+
+    <div class="divlabel">Biometrics</div>
+    <div class="card gl"><div class="biocard">
+      <div class="biotop">
+        <div>
+          <div class="biolabel">HEART RATE</div>
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <div class="bionum" id="hr-num">72</div>
+            <div class="biounit">BPM</div>
+          </div>
+          <div class="biostatus" id="hr-status">Normal · threshold 130 bpm</div>
+        </div>
+        <button class="btn" style="width:auto;padding:9px 15px;font-size:11.5px;background:var(--red-bg);color:var(--red);border:1px solid var(--red-edge);" onclick="simulateHR()">Simulate spike</button>
+      </div>
+      <div class="ecgwrap">
+        <svg class="ecgsvg" viewBox="0 0 400 36" preserveAspectRatio="none">
+          <polyline points="0,18 30,18 40,18 50,4 60,30 70,12 80,18 110,18 140,18 150,4 160,30 170,12 180,18 210,18 240,18 250,4 260,30 270,12 280,18 310,18 340,18 350,4 360,30 370,12 380,18 400,18" fill="none" stroke="rgba(255,59,92,0.6)" stroke-width="1.3"/>
+        </svg>
+      </div>
+    </div></div>
+
+    <div class="divlabel">Guardian network</div>
+    <div class="card gl" style="padding:15px 17px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px;">
+        <div><div style="font-size:13.5px;font-weight:500;color:var(--ink-1);">Drone network</div><div style="font-family:var(--f-data);font-size:10px;color:var(--ink-3);margin-top:3px;">Active in Enfield Town · 40 UK cities</div></div>
+        <span class="pill p-gr">Active</span>
+      </div>
+      <div style="font-family:var(--f-data);font-size:10px;color:var(--ink-3);line-height:1.7;">When you press SOS, Guardian Command dispatches the nearest drone automatically. Average response: <span style="color:var(--cyan);">3 min 42s</span>.</div>
+    </div>
+
+    <div class="divlabel">Privacy &amp; data</div>
+    <div class="card gl" style="padding:0;">
+      <div class="row"><div class="rico r-vi"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="rinfo"><div class="rlabel">Evidence vault</div><div class="rsub">Zero-knowledge · AES-256</div></div><div class="rchev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+      <div class="row"><div class="rico r-cy"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="rinfo"><div class="rlabel">GDPR &amp; privacy policy</div><div class="rsub">UK GDPR compliant</div></div><div class="rchev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+      <div class="row" style="border-bottom:none;"><div class="rico r-rd"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div><div class="rinfo"><div class="rlabel">Delete all data</div><div class="rsub">Permanent and irreversible</div></div><div class="rchev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    </div>
+    <div style="text-align:center;padding:6px 0 2px;font-family:var(--f-data);font-size:10px;color:var(--ink-4);">Guardian · guardian-protect.co.uk</div>
+  </div>
+</div>
+
+</div>
+
+<nav id="nav">
+  <div class="navbar gl-raised">
+    <button class="navbtn on" onclick="goScr('sos',this)" id="nav-sos"><div class="nico"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round"/></svg></div><div class="nlbl">SOS</div></button>
+    <button class="navbtn" onclick="goScr('ai',this)" id="nav-ai"><div class="nico"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M6 8l3 3 2-2 3 3 3-4" stroke-linecap="round"/></svg></div><div class="nlbl">AI</div></button>
+    <button class="navbtn" onclick="goScr('contacts',this)" id="nav-contacts"><div class="nico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="nlbl">Network</div></button>
+    <button class="navbtn" onclick="goScr('map',this)" id="nav-map"><div class="nico"><svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg></div><div class="nlbl">Routes</div></button>
+    <button class="navbtn" onclick="goScr('vault',this)" id="nav-vault"><div class="nico"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="nlbl">Vault</div></button>
+    <button class="navbtn" onclick="goScr('profile',this)" id="nav-profile"><div class="nico"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="nlbl">Profile</div></button>
+    <button class="navbtn" onclick="goScr('settings',this)" id="nav-settings"><div class="nico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div class="nlbl">Settings</div></button>
+  </div>
+</nav>
+</div></div>
+
+<div class="ov-sos" id="ov-sos">
+  <div class="ovtitle">SOS ACTIVATED</div>
+  <div class="ovcount" id="ov-count">3</div>
+  <div class="ovinfo">Alerting 3 contacts &nbsp;·&nbsp; Calling 999<br>GPS broadcasting &nbsp;·&nbsp; Evidence capture active<br>Guardian drone dispatched</div>
+  <button class="ovcancel" onclick="cancelSOS()">Cancel alert</button>
+</div>
+
+<div class="ov-stealth" id="ov-stealth"><div class="stealthdot"></div><button class="stealthexit" onclick="exitStealth()">Hold 3s to exit stealth</button></div>
+
+<div class="ov-call" id="ov-call">
+  <div class="callstatus">Incoming call</div>
+  <div class="callavatar">M</div>
+  <div class="callname">Mum</div>
+  <div class="callsub">mobile · Guardian safety call</div>
+  <div class="callacts">
+    <div class="callact"><button class="callbtn call-end" onclick="endCall()"><svg viewBox="0 0 24 24"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.42 19.42 0 0 1 4.44 9.12 19.79 19.79 0 0 1 1.37.5a2 2 0 0 1 2-.18H6.4A2 2 0 0 1 8.4 2.03a12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.38 8.22a16 16 0 0 0 3.3 5.09z" transform="rotate(135 12 12)"/></svg></button><div class="calllbl">Decline</div></div>
+    <div class="callact"><button class="callbtn call-accept" onclick="endCall()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.09 19.79 19.79 0 0 1 1 .4 2 2 0 0 1 2.97 2h3a2 2 0 0 1 2 1.72A12 12 0 0 0 9 6.5a2 2 0 0 1-.45 2.11L7.09 10.1a16 16 0 0 0 6.82 6.82l1.39-1.39a2 2 0 0 1 2.11-.45 12 12 0 0 0 2.78.65A2 2 0 0 1 22 17.92z"/></svg></button><div class="calllbl">Accept</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function tick(){const n=new Date();document.getElementById('clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');}
+tick();setInterval(tick,15000);
+
+function enterApp(){
+  document.getElementById('scr-launch').classList.remove('on');
+  document.getElementById('scr-sos').classList.add('on');
+  document.getElementById('nav').style.display='block';
+}
+function goScr(id,btn){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('scr-'+id).classList.add('on');
+  const nb=btn||document.getElementById('nav-'+id);if(nb)nb.classList.add('on');
+}
+function qToggle(el){el.classList.toggle('active');}
+
+let sosTimer=null;
+function triggerSOS(){
+  document.getElementById('ov-sos').classList.add('on');
+  let c=3;document.getElementById('ov-count').textContent=c;
+  if(navigator.vibrate)navigator.vibrate([300,100,300,100,300]);
+  sosTimer=setInterval(()=>{c--;if(c<=0){clearInterval(sosTimer);document.getElementById('ov-count').textContent='✓';}
+  else document.getElementById('ov-count').textContent=c;},1000);
+}
+function cancelSOS(){clearInterval(sosTimer);document.getElementById('ov-sos').classList.remove('on');toast('Alert cancelled');}
+function activateStealth(){document.getElementById('ov-stealth').classList.add('on');}
+function exitStealth(){document.getElementById('ov-stealth').classList.remove('on');toast('Stealth deactivated');}
+function showFakeCall(){document.getElementById('ov-call').classList.add('on');}
+function endCall(){document.getElementById('ov-call').classList.remove('on');}
+
+let scanning=false;
+const SCAN_MSGS=[
+  '> Initialising on-device neural models...',
+  '> Mic: scanning for distress patterns...',
+  '> Camera: analysing environment...',
+  '<span class="log-info">> Bluetooth: 4 devices detected nearby</span>',
+  '> Heart rate: 72 bpm — baseline stable',
+  '> Motion sensors: no anomalies detected',
+  '<span class="log-info">> Running threat assessment model...</span>',
+  '> Cross-referencing community heatmap...',
+  '<span class="log-ok">> ✓ Environment clear — danger score: LOW (09/100)</span>'
+];
+function runScan(){
+  if(scanning)return;scanning=true;
+  const fill=document.getElementById('scanfill'),pct=document.getElementById('scanpct'),
+    lbl=document.getElementById('scanlbl'),log=document.getElementById('scanlog'),
+    btn=document.getElementById('scanbtn');
+  ['s-mic','s-cam','s-mot','s-bt','s-hr'].forEach(id=>document.getElementById(id).classList.add('lit'));
+  btn.disabled=true;btn.textContent='Scanning…';log.innerHTML=SCAN_MSGS[0];
+  let p=0,mi=0;
+  const iv=setInterval(()=>{
+    p=Math.min(p+1.4,100);fill.style.width=p+'%';pct.textContent=Math.round(p)+'%';
+    lbl.textContent=p<100?'Analysing...':'Scan complete';
+    const ni=Math.min(Math.floor((p/100)*(SCAN_MSGS.length-1)),SCAN_MSGS.length-1);
+    if(ni>mi){mi=ni;log.innerHTML=SCAN_MSGS[mi];}
+    if(p>=100){clearInterval(iv);btn.disabled=false;btn.textContent='Run scan again';scanning=false;}
+  },55);
+}
+
+let timerMins=30,timerSecs=0,timerIv=null;
+function setTimer(btn,m){timerMins=m;document.querySelectorAll('.topt').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
+function startTimer(){
+  timerSecs=timerMins*60;
+  document.getElementById('timerstart').style.display='none';
+  document.getElementById('timerrun').style.display='block';
+  updateTimer();
+  timerIv=setInterval(()=>{timerSecs--;if(timerSecs<=0){clearInterval(timerIv);document.getElementById('timerdisp').textContent='Alert sent!';}else updateTimer();},1000);
+}
+function updateTimer(){const m=Math.floor(timerSecs/60),s=timerSecs%60;document.getElementById('timerdisp').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+function markSafe(){clearInterval(timerIv);document.getElementById('timerdisp').textContent='Safe ✓';setTimeout(()=>{document.getElementById('timerrun').style.display='none';document.getElementById('timerstart').style.display='block';},1500);toast('Check-in confirmed ✓');}
+function stopTimer(){clearInterval(timerIv);document.getElementById('timerrun').style.display='none';document.getElementById('timerstart').style.display='block';}
+
+const PERMS=['Location & GPS','Microphone','Camera','Contacts & Calls','Motion & Health','Satellite SOS'];
+let permIdx=0;
+function cyclePermit(){
+  const txt=document.getElementById('permit-txt');if(!txt)return;
+  txt.classList.add('fade');
+  setTimeout(()=>{permIdx=(permIdx+1)%PERMS.length;txt.textContent=PERMS[permIdx];txt.classList.remove('fade');},230);
+}
+setInterval(cyclePermit,1900);
+
+const READOUT_MSGS=[
+  'Monitoring ambient audio · all clear',
+  'Location synced · 3 contacts watching',
+  'Nearest drone 0.8km · standing by',
+  'Motion pattern normal · no anomalies',
+  'Satellite link verified · ready',
+  'Heart rate 72 bpm · baseline stable',
+  'Evidence vault encrypted · 3 items',
+  'Community heatmap updated · 2 min ago',
+];
+let readoutIdx=0;
+function cycleReadout(){
+  const el=document.getElementById('readout');if(!el)return;
+  el.classList.add('fade');
+  setTimeout(()=>{readoutIdx=(readoutIdx+1)%READOUT_MSGS.length;el.textContent=READOUT_MSGS[readoutIdx];el.classList.remove('fade');},250);
+}
+setInterval(cycleReadout,3400);
+
+let toastTimer=null;
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('on'),2800);}
+
+// Voice trigger demo
+let vtActive=false;let vtT=null;
+function demoVoice(){
+  if(vtActive)return; vtActive=true;
+  const orb=document.getElementById('vt-orb');
+  const status=document.getElementById('vt-status');
+  const bars=document.querySelectorAll('.vt-bar');
+  const btn=document.getElementById('vt-btn');
+  const sub=document.getElementById('vt-sub');
+  orb.classList.add('listening');
+  bars.forEach(b=>b.classList.add('active'));
+  status.textContent='Wake word detected · listening...';status.classList.add('on');
+  btn.disabled=true;
+  const steps=[
+    [900,'Processing voice command...'],
+    [1800,'"Hey Guardian" confirmed · what do you need?'],
+    [3200,'Say: SOS · stealth · call mum · safe word'],
+    [5200,'Standby · listening for next command...'],
+    [6800,'Passive monitoring · waiting for wake word'],
+  ];
+  steps.forEach(([ms,txt])=>{
+    vtT=setTimeout(()=>{
+      status.textContent=txt;
+      if(ms>=6800){
+        orb.classList.remove('listening');
+        bars.forEach(b=>b.classList.remove('active'));
+        status.classList.remove('on');
+        btn.disabled=false;vtActive=false;
+      }
+    },ms);
+  });
+}
+
+let hrIv=null;
+function simulateHR(){
+  const num=document.getElementById('hr-num');
+  const status=document.getElementById('hr-status');
+  let hr=72; if(hrIv)clearInterval(hrIv);
+  hrIv=setInterval(()=>{
+    hr=Math.min(hr+8,158); num.textContent=hr;
+    if(hr>=130){status.textContent='⚠ Panic spike · check-in sent to contacts';
+      num.style.color='var(--red)';toast(`Heart rate ${hr} bpm · alerting contacts`);}
+    else status.textContent=hr+' bpm · rising...';
+    if(hr>=158){clearInterval(hrIv);setTimeout(()=>{
+      hrIv=setInterval(()=>{hr=Math.max(hr-5,72);num.textContent=hr;
+        if(hr<=72){clearInterval(hrIv);status.textContent='Normal · threshold 130 bpm';}},150);},2000);}
+  },120);
+}
+</script>
+</body>
+</html>
